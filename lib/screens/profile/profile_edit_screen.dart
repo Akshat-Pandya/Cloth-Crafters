@@ -1,199 +1,154 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:tailor_app/constants.dart';
+import 'package:tailor_app/utility.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    return _ProfileEditScreenState();
-  }
+  _ProfileEditScreenState createState() => _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
-  bool _passwordVisibility = false;
-  XFile? _selectedImage;
+  late Future<Map<String, String>> userProfile;
 
-  Future<void> _pickImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        setState(() {
-          _selectedImage = image;
-        });
-      }
-    } catch (e) {
-      print("Error picking image: $e");
+  // Controllers to manage the text input fields
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    userProfile = fetchUserProfile();
+  }
+
+  Future<Map<String, String>> fetchUserProfile() async {
+    final email = CurrentState.email;
+
+    if (email == null || email.isEmpty) {
+      throw Exception('Email is missing. Please ensure you are logged in.');
+    }
+
+    final response = await http.post(
+      Uri.parse('$apiUrl/profile'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'email': email,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // Pre-fill the controllers with fetched data
+      usernameController.text = data['username'] ?? '';
+      emailController.text = data['email'] ?? '';
+      phoneController.text = data['phone_number'] ?? '';
+      addressController.text = data['address'] ?? '';
+
+      return {
+        'username': data['username'] ?? '',
+        'email': data['email'] ?? '',
+        'phone_number': data['phone_number'] ?? '',
+        'address': data['address'] ?? '',
+      };
+    } else {
+      throw Exception('Failed to load profile');
     }
   }
+
+  Future<void> updateProfile() async {
+    final email = CurrentState.email;
+
+    if (email == null || email.isEmpty) {
+      throw Exception('Email is missing. Please ensure you are logged in.');
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('$apiUrl/profile/update'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'email': email,
+          'username': usernameController.text,
+          'phone_number': phoneController.text,
+          'address': addressController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Show a success message (can use a SnackBar or dialog)
+        print('Profile updated successfully');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Profile updated successfully!'),
+          backgroundColor: Colors.green,
+        ));
+        Navigator.pop(context);  // Go back to the previous screen after successful update
+      } else {
+        // Show error message
+        final error = jsonDecode(response.body)['message'];
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to update profile: $error'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } catch (error) {
+      // Handle network or other errors
+      print('Error: $error');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: Could not update profile'),
+        backgroundColor: Colors.red,
+      ));
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("My Profile"),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      appBar: AppBar(title: Text('Edit Profile'),),
+      body: Container(
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 28, bottom: 50),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 3,
+              spreadRadius: 3,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  backgroundImage: _selectedImage != null
-                      ? FileImage(File(_selectedImage!.path))
-                      : AssetImage('assets/images/person.webp') as ImageProvider,
-                  radius: 60,
-                ),
-              ),
+            CircleAvatar(
+              backgroundImage: AssetImage('assets/images/person.webp'),
+              radius: 60,
             ),
             SizedBox(height: 20),
-            TextField(
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person, color: Colors.black),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                labelText: 'Username',
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  letterSpacing: 0,
-                ),
-                hintStyle: TextStyle(color: Colors.black12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              ),
-            ),
+            buildEditableUIItem(Icons.person, "Username", usernameController),
             SizedBox(height: 20),
-            TextField(
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.email, color: Colors.black),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                labelText: 'Email Address',
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  letterSpacing: 0,
-                ),
-                hintStyle: TextStyle(color: Colors.black12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              ),
-            ),
+            buildEditableUIItem(Icons.email, "Email", emailController, isEditable: false),
             SizedBox(height: 20),
-            TextField(
-              maxLength: 8,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock, color: Colors.black),
-                suffixIcon: IconButton(
-                  icon: !_passwordVisibility
-                      ? Icon(Icons.visibility, color: Colors.black)
-                      : Icon(Icons.visibility_off, color: Colors.black),
-                  onPressed: () {
-                    setState(() {
-                      _passwordVisibility = !_passwordVisibility;
-                    });
-                  },
-                ),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                labelText: 'Password',
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  letterSpacing: 0,
-                ),
-                hintStyle: TextStyle(color: Colors.black12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              ),
-              obscureText: !_passwordVisibility,
-            ),
+            buildEditableUIItem(Icons.phone, "Phone Number", phoneController),
             SizedBox(height: 20),
-            IntlPhoneField(
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                labelStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  letterSpacing: 0,
-                ),
-                hintStyle: TextStyle(color: Colors.black12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              ),
-              initialCountryCode: 'IN', // Default country code
-              onChanged: (phone) {
-                print(phone.completeNumber); // Output complete phone number
-              },
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1,
-              ),
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.home_filled, color: Colors.black),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                labelText: 'Residential Address',
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  letterSpacing: 0,
-                ),
-                hintStyle: TextStyle(color: Colors.black12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              ),
-            ),
-            SizedBox(height: 20),
+            buildEditableUIItem(Icons.location_on, "Address", addressController),
+            SizedBox(height: 30),
             Container(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: (){Navigator.pop(context);},
                 child: Text(
-                  "Save Changes",
+                  "Update Profile",
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -201,12 +156,57 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildEditableUIItem(IconData icon, String label, TextEditingController controller, {bool isEditable = true}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 2,
+            spreadRadius: 2,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      width: double.infinity,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.red,
+            size: 24,
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              enabled: isEditable,  // Make it editable or not
+              decoration: InputDecoration(
+                labelText: label,
+                border: InputBorder.none,
+              ),
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

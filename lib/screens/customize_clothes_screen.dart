@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:tailor_app/screens/search_tailor_screen.dart';
 import 'package:tailor_app/widgets/rounded_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
@@ -55,7 +56,17 @@ class _CustomizeClothesScreenState extends State<CustomizeClothesScreen> {
   Widget build(BuildContext context) {
     curr=context;
     return Scaffold(
-      appBar: AppBar(title: Text("Customize Clothes")),
+      appBar: AppBar(title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Customize Clothes"),
+          InkWell(onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (_){
+              return TailorSearchScreen();
+            }));
+          },child: Icon(Icons.person_search_rounded),)
+        ],
+      )),
       body: Column(
         children: [
           Expanded(

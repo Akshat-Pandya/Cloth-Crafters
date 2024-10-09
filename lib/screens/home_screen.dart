@@ -7,6 +7,8 @@ import 'package:tailor_app/screens/help_support_screen.dart';
 import 'package:tailor_app/utility.dart';
 import 'package:tailor_app/services/token_storage.dart';
 
+import '../dress_collection_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -46,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Icon(Icons.exit_to_app),
                           onTap: (){
                               print("logout button pressed");
-                              var result=TokenStorage.deleteToken();
+                              var result=TokenStorage.clearToken();
                               if(result!=null){
                                 Navigator.popAndPushNamed(context,'/login');
                               }
@@ -82,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     buildGridItem(context, Icons.collections_bookmark_outlined, 'Fabric Collection', Color(0xFFFBECE1),FabricCollectionScreen()),
                     buildGridItem(context, Icons.scale_outlined, 'Alter Clothes', Color(0xFFD8F3F5),AlterClothesScreen()),
                     buildGridItem(context, Icons.create_outlined, 'Customize Clothes', Color(0xFFE2EFE1),CustomizeClothesScreen()),
-                    buildGridItem(context, Icons.assignment_ind_outlined, 'Tailor Made Clothes', Color(0xFFF2EBF8),MeasurementController()),
+                    buildGridItem(context, Icons.assignment_ind_outlined, 'Tailor Made Clothes', Color(0xFFF2EBF8),DressCollectionScreen()),
                     buildGridItem(context, Icons.support_agent_sharp, 'Help & Support', Color(0xFFF6D6D6),HelpSupportScreen()),
 
                   ],
@@ -99,11 +101,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       'Our Fabric Collection',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // Action for "View All"
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_){
+                          return FabricCollectionScreen();
+                        }));
                       },
-                      child: Text('View All'),
+                      child: Text('View All',style: TextStyle(color: Colors.red,fontWeight: FontWeight.w600),),
                     ),
                   ],
                 ),
@@ -120,11 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       'Best Selling Products',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // Action for "View All"
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_){
+                          return DressCollectionScreen();
+                        }));
                       },
-                      child: Text('View All'),
+                      child: Text('View All',style: TextStyle(color: Colors.red,fontWeight: FontWeight.w600),),
                     ),
                   ],
                 ),

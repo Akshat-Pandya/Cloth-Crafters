@@ -1,9 +1,12 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:tailor_app/screens/boutique/controller_screen.dart';
 import 'package:tailor_app/screens/controller_screen.dart';
 import 'package:tailor_app/screens/home_screen.dart';
 import 'package:tailor_app/screens/signup_screen.dart';
+import 'package:tailor_app/screens/tailor/controller_screen.dart';
+import 'package:tailor_app/utility.dart';
 import '../services/auth_service.dart';
 import '../services/token_storage.dart'; // Import the auth service
 
@@ -12,6 +15,7 @@ class LoginScreen extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _LoginScreenState();
   }
+
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -19,16 +23,44 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  @override
+  initState(){
+    super.initState();
+    TokenStorage.clearAllSharedPreferences();
+    print('Shared Preference Cleared.');
+  }
+
   Future<void> _login() async {
-    // Check if a token already exists
-    final existingToken = await TokenStorage.getToken();
-    if (existingToken != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => ControllerScreen()),
-      );
-      return;
-    }
+    // // Check if a token already exists
+    // final existingToken = await TokenStorage.getToken();
+    // if (existingToken != null ) {
+    //   if(CurrentState.userType=='User'){
+    //     print('User getting logged in .');
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (_) => ControllerScreen()),
+    //     );
+    //   }
+    //   else if(CurrentState.userType=='Tailor'){
+    //     print('Tailor getting logged in .');
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (_) => ControllerScreenTailor()),
+    //     );
+    //   }
+    //   else if(CurrentState.userType=='Boutique'){
+    //     print('Boutique getting logged in .');
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (_) => ControllerScreenBoutique()),
+    //     );
+    //   }
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (_) => ControllerScreen()),
+    //   );
+    //   return;
+    // }
 
     final email = _emailController.text;
     final password = _passwordController.text;
@@ -45,8 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = await loginUser(email, password);
 
       if (token != null) {
-        // Save the token
-        await TokenStorage.saveToken(token);
 
         // Close progress indicator
         Navigator.pop(context);
@@ -58,12 +88,32 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        print('User Type Now : ${CurrentState.userType}');
 
+        if(CurrentState.userType=='User'){
+          print('user logged in ');
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => HomeScreen()),
+          MaterialPageRoute(builder: (_) => ControllerScreen()),
               (route) => false,
-        );
+        );}
+        else if(CurrentState.userType=='Tailor'){
+          print('tailor logged in ');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => ControllerScreenTailor()),
+              (route) => false,
+        );}
+        else if(CurrentState.userType=='Boutique'){
+          print('boutique logged in ');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => ControllerScreenBoutique()),
+              (route) => false,
+        );}
+
+
+
       } else {
         // Close progress indicator
         Navigator.pop(context);

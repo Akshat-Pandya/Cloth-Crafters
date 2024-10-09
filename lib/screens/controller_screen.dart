@@ -2,25 +2,24 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tailor_app/screens/cart_screen.dart';
 import 'package:tailor_app/screens/home_screen.dart';
-
 import 'account/account_screen.dart';
 
-class ControllerScreen extends StatefulWidget{
+class ControllerScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     return _ControllerScreenState();
   }
 }
-class _ControllerScreenState extends State<ControllerScreen>
-{
-  var currentPageIndex=0;
+
+class _ControllerScreenState extends State<ControllerScreen> {
+  var currentPageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return buildUI(context);
   }
-  Widget buildUI(BuildContext context)
-  {
+
+  Widget buildUI(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Scaffold(
       bottomNavigationBar: NavigationBar(
@@ -33,39 +32,27 @@ class _ControllerScreenState extends State<ControllerScreen>
         selectedIndex: currentPageIndex,
         destinations: const <Widget>[
           NavigationDestination(
-            selectedIcon: Icon(Icons.home,color: Colors.white,),
+            selectedIcon: Icon(Icons.home, color: Colors.white),
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.shopping_bag_sharp,color: Colors.white,),
-            icon: Icon(Icons.shopping_bag_sharp),
-            label: 'Shop',
-          ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.shopping_cart,color: Colors.white,),
+            selectedIcon: Icon(Icons.shopping_cart, color: Colors.white),
             icon: Icon(Icons.shopping_cart),
             label: 'My Cart',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.person,color: Colors.white,),
+            selectedIcon: Icon(Icons.person, color: Colors.white),
             icon: Icon(Icons.person),
             label: 'Account',
           ),
-
         ],
       ),
       body: <Widget>[
-       HomeScreen(),
-        Center(child: Container(child: Text('My Cart'),)),
-        CartScreen(onExplorePressed: () {
-          setState(() {
-            currentPageIndex = 1; // Switch to Shop tab
-          });
-        }),
+        HomeScreen(),
+        CartScreen(),
         AccountScreen(),
       ][currentPageIndex],
     );
   }
-
-  }
+}

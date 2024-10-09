@@ -1,45 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:tailor_app/constants.dart';
-import 'order_fabric_screen.dart'; // Import the OrderFabricScreen
 
-class FabricCollectionScreen extends StatefulWidget {
-  const FabricCollectionScreen({super.key});
+import 'package:tailor_app/constants.dart';
+import 'package:tailor_app/screens/order_dress_screen.dart';
+import 'package:tailor_app/screens/search_tailor_screen.dart'; // Import the OrderDressScreen
+
+class DressCollectionScreen extends StatefulWidget {
+  const DressCollectionScreen({super.key});
 
   @override
-  State<FabricCollectionScreen> createState() => _FabricCollectionScreenState();
+  State<DressCollectionScreen> createState() => _DressCollectionScreenState();
 }
 
-class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
-  List<dynamic> fabrics = [];
+class _DressCollectionScreenState extends State<DressCollectionScreen> {
+  List<dynamic> dresses = [];
   bool isLoading = true;
   String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    fetchFabrics();
+    fetchDressCollection();
   }
 
-  Future<void> fetchFabrics() async {
+  Future<void> fetchDressCollection() async {
     try {
-      final response = await http.get(Uri.parse('$apiUrl/fabric')); // Adjust your API URL
-
+      final response = await http.get(Uri.parse('$apiUrl/products'));
       if (response.statusCode == 200) {
         setState(() {
-          fabrics = json.decode(response.body);
+          dresses = json.decode(response.body);
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = 'Failed to load fabrics. Status code: ${response.statusCode}';
+          errorMessage = 'Failed to load dress collection. Status code: ${response.statusCode}';
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        errorMessage = 'Error fetching fabrics: $e';
+        errorMessage = 'Error fetching dress collection: $e';
         isLoading = false;
       });
     }
@@ -47,10 +48,16 @@ class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return buildUI();
+  }
+
+  Widget buildUI() {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Fabric Collection"),
-      ),
+      appBar: AppBar(title: Row(
+        children: [
+          Text("Dress Collection"),
+        ],
+      )),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : errorMessage != null
@@ -58,7 +65,7 @@ class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
           : Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
-          itemCount: fabrics.length,
+          itemCount: dresses.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 0.75,
@@ -66,15 +73,15 @@ class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
             mainAxisSpacing: 8.0,
           ),
           itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
+            return InkWell(
               onTap: () {
-                print('fabric id tapped ');
-                print(fabrics[index]['fabric_id']);
-                // Navigate to OrderFabricScreen with fabric ID
+                print('Dress Id Tapped: ${dresses[index]["product_id"]}'); // Corrected ID access
+
+                // Navigate to the OrderDressScreen and pass the dress ID
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => OrderFabricScreen(fabricId: fabrics[index]['fabric_id']),
+                    builder: (context) => OrderDressScreen(dressId: dresses[index]["product_id"]), // Use "product_id"
                   ),
                 );
               },
@@ -90,7 +97,7 @@ class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
                         child: Image.network(
-                          fabrics[index]['image'],  // Use the image URL from API
+                          dresses[index]["image"],
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -102,15 +109,9 @@ class _FabricCollectionScreenState extends State<FabricCollectionScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              fabrics[index]['name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                            Text(dresses[index]["name"], style: TextStyle(fontWeight: FontWeight.bold)),
                             SizedBox(height: 5),
-                            Text(
-                              '${fabrics[index]['cost'] } Rs.',
-                              style: TextStyle(color: Colors.grey),
-                            ),
+                            Text("${dresses[index]["cost"]} Rs.", style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),

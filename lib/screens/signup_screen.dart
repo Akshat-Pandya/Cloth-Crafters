@@ -5,6 +5,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // To parse JSON responses
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tailor_app/constants.dart';
 import 'package:tailor_app/screens/account/terms_privacy_screen.dart'; // Import fluttertoast package
 
 class SignupScreen extends StatefulWidget {
@@ -67,7 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
   // API call for registration
   Future<void> _registerUser() async {
     if (_validateFields()) {
-      String url = "http://192.168.92.156:3000/register"; // Replace with your IP or localhost
+      String url = "$apiUrl:3000/register"; // Replace with your IP or localhost
       Map<String, dynamic> requestBody = {
         'username': _usernameController.text,
         'email': _emailController.text,

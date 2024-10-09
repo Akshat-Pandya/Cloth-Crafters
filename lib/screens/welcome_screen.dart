@@ -10,6 +10,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
+  @override
 
   @override
   Widget build(BuildContext context) {

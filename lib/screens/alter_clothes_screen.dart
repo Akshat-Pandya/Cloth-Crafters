@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tailor_app/screens/search_tailor_screen.dart';
 import 'package:tailor_app/utility.dart';
 import 'dart:convert';
 import 'package:tailor_app/widgets/rounded_button.dart';
@@ -57,7 +58,17 @@ class _AlterClothesScreenState extends State<AlterClothesScreen> {
   Widget build(BuildContext context) {
     curr=context;
     return Scaffold(
-      appBar: AppBar(title: Text("Alter Clothes")),
+      appBar: AppBar(title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Alter Clothes"),
+          InkWell(onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (_){
+              return TailorSearchScreen();
+            }));
+          },child: Icon(Icons.person_search_rounded),)
+        ],
+      )),
       body: Column(
         children: [
           Expanded(
